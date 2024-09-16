@@ -3,22 +3,40 @@ package config
 import (
 	"flag"
 	"log"
+	"os"
+	"strconv"
 )
 
-func Token() string {
-	token := flag.String("token-bot-token", "", "token for access telegram bot")
-	flag.Parse()
-	if *token == "" {
-		log.Fatal("Need token")
+var (
+	Redis struct {
+		Password string
+		DB       int
 	}
-	return *token
-}
+	Token string
+	Host  string
+	Stor  string
+)
 
-func Host() string {
-	host := flag.String("host-bot", "", "host for telegram bot")
-	flag.Parse()
-	if *host == "" {
-		log.Fatal("Need host")
+func Init() {
+	Redis.Password = os.Getenv("PASSWORD")
+	if dbStr := os.Getenv("DB"); dbStr != "" {
+		if db, err := strconv.Atoi(dbStr); err == nil {
+			Redis.DB = db
+		} else {
+			log.Fatalf("Invalid DB value: %v", err)
+		}
 	}
-	return *host
+
+	flag.StringVar(&Token, "token-bot-token", "", "token for access telegram bot")
+	flag.StringVar(&Host, "host-bot", "", "host for telegram bot")
+	flag.StringVar(&Stor, "storage", "", "need storage")
+	flag.Parse()
+
+	if Stor == "" {
+		log.Fatal("Need storage")
+	}
+
+	if Token == "" || Host == "" {
+		log.Fatal("Need token and host")
+	}
 }
